@@ -12,8 +12,12 @@
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
         }
 
+        html {
+            overflow-y: scroll; /* 始终显示滚动条，避免布局抖动 */
+        }
+
         body {
-            width: 100vw;
+            width: 100%;
             min-height: 100vh;
             background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
             overflow-x: hidden;
@@ -22,7 +26,7 @@
 
         /* 背景波浪 */
         .wave {
-            position: absolute;
+            position: fixed; /* fixed 避免随内容滚动消失 */
             bottom: 0;
             left: 0;
             width: 100%;
@@ -31,6 +35,8 @@
             border-radius: 50% 50% 0 0 / 30% 30% 0 0;
             transform: scaleX(1.5);
             animation: wave 15s ease-in-out infinite;
+            pointer-events: none;
+            z-index: 0;
         }
 
         .wave:nth-child(2) {
@@ -128,10 +134,15 @@
             opacity: 0.9;
         }
 
+        /*
+         * 修复：改用 justify-content: start + repeat(auto-fill) + max-content 避免少量 icon 被拉伸
+         * auto-fill 会在容器内尽量多填充列，item 保持固定宽度，不拉伸
+         */
         .app-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(70px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(80px, max-content));
             gap: clamp(12px, 3vw, 20px);
+            justify-content: start; /* 关键：靠左对齐，不撑满 */
         }
 
         .app-item {
@@ -141,6 +152,7 @@
             cursor: pointer;
             transition: transform 0.2s ease;
             text-decoration: none;
+            width: 80px; /* 给每个 item 固定宽度，配合 max-content 列 */
         }
 
         .app-item:hover {
@@ -148,21 +160,23 @@
         }
 
         .app-icon {
-            width: clamp(50px, 12vw, 60px);
-            height: clamp(50px, 12vw, 60px);
+            width: 56px;
+            height: 56px;
             border-radius: 16px;
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
             margin-bottom: 8px;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            flex-shrink: 0;
         }
 
         .app-name {
             color: rgba(255, 255, 255, 0.8);
-            font-size: clamp(10px, 2vw, 12px);
+            font-size: 12px;
             text-align: center;
             word-break: break-all;
+            line-height: 1.3;
         }
 
         /* 右侧工具栏 */
@@ -201,12 +215,29 @@
             .container {
                 padding: 24px 16px 100px;
             }
+            .app-grid {
+                grid-template-columns: repeat(auto-fill, minmax(68px, max-content));
+                justify-content: start;
+            }
+            .app-item {
+                width: 68px;
+            }
+            .app-icon {
+                width: 50px;
+                height: 50px;
+            }
         }
 
         @media (max-width: 480px) {
+            .app-grid {
+                grid-template-columns: repeat(auto-fill, minmax(60px, max-content));
+            }
+            .app-item {
+                width: 60px;
+            }
             .app-icon {
-                width: 48px;
-                height: 48px;
+                width: 46px;
+                height: 46px;
             }
             .app-name {
                 font-size: 10px;
@@ -221,13 +252,13 @@
     <div class="container">
         <div class="header">
             <h1>Sun-Panel</h1>
-            <div class="time">15:34 | 11-28 星期二</div>
+            <div class="time" id="clock">--:-- | ---- 星期-</div>
         </div>
 
         <div class="search-box">
             <span class="icon">G</span>
-            <input type="text" placeholder="请输入搜索内容" id="searchInput">
-            <span class="search-btn" onclick="doSearch()">Q</span>
+            <input type="text" placeholder="请输入搜索内容" id="searchInput" onkeydown="if(event.key==='Enter') doSearch()">
+            <span class="search-btn" onclick="doSearch()">🔍</span>
         </div>
 
         <!-- ========== 设计开发 ========== -->
@@ -302,85 +333,34 @@
             </div>
         </div>
 
-        <!-- ========== 运营 ========== -->
-        <div class="app-section">
-            <h2>📈 运营</h2>
-            <div class="app-grid">
-                <a class="app-item" href="https://www.jd.com/" target="_blank">
-                    <div class="app-icon" style="background-image: url('https://www.jd.com/favicon.ico');"></div>
-                    <div class="app-name">JD</div>
-                </a>
-            </div>
-        </div>
-
-        <!-- ========== 工具 ========== -->
-        <div class="app-section">
-            <h2>🛠️ 工具</h2>
-            <div class="app-grid">
-                <a class="app-item" href="https://www.xunlei.com/" target="_blank">
-                    <div class="app-icon" style="background-image: url('https://www.xunlei.com/favicon.ico');"></div>
-                    <div class="app-name">迅雷</div>
-                </a>
-                <a class="app-item" href="http://localhost:4533/" target="_blank">
-                    <div class="app-icon" style="background-image: url('http://localhost:4533/favicon.ico');"></div>
-                    <div class="app-name">Navidrome</div>
-                </a>
-            </div>
-        </div>
-
-        <!-- ========== 软件 ========== -->
-        <div class="app-section">
-            <h2>💻 软件</h2>
-            <div class="app-grid">
-                <a class="app-item" href="https://www.microsoft.com/" target="_blank">
-                    <div class="app-icon" style="background-image: url('https://www.microsoft.com/favicon.ico');"></div>
-                    <div class="app-name">Windows</div>
-                </a>
-                <a class="app-item" href="https://weixin.qq.com/" target="_blank">
-                    <div class="app-icon" style="background-image: url('https://weixin.qq.com/favicon.ico');"></div>
-                    <div class="app-name">WeChat</div>
-                </a>
-                <a class="app-item" href="https://im.qq.com/" target="_blank">
-                    <div class="app-icon" style="background-image: url('https://im.qq.com/favicon.ico');"></div>
-                    <div class="app-name">QQ</div>
-                </a>
-            </div>
-        </div>
-
-        <!-- ========== AI ========== -->
-        <div class="app-section">
-            <h2>🤖 AI</h2>
-            <div class="app-grid">
-                <a class="app-item" href="http://localhost:8080/" target="_blank">
-                    <div class="app-icon" style="background-image: url('http://localhost:8080/favicon.ico');"></div>
-                    <div class="app-name">Sun-Panel</div>
-                </a>
-                <a class="app-item" href="http://localhost:8123/" target="_blank">
-                    <div class="app-icon" style="background-image: url('http://localhost:8123/favicon.ico');"></div>
-                    <div class="app-name">HomeAssistant</div>
-                </a>
-            </div>
-        </div>
     </div>
 
+    <!-- 右侧工具栏 -->
     <div class="toolbar">
-        <div class="toolbar-btn">+</div>
-        <div class="toolbar-btn">🌐</div>
-        <div class="toolbar-btn">⚙️</div>
-        <div class="toolbar-btn">⚙️</div>
+        <div class="toolbar-btn" title="刷新" onclick="location.reload()">↻</div>
+        <div class="toolbar-btn" title="回顶部" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</div>
     </div>
 
     <script>
-        // 搜索功能
-        function doSearch() {
-            const val = document.getElementById('searchInput').value.trim();
-            if (val) {
-                window.open('https://www.baidu.com/s?wd=' + encodeURIComponent(val), '_blank');
-            }
+        // 实时时钟
+        function updateClock() {
+            const now = new Date();
+            const days = ['星期日','星期一','星期二','星期三','星期四','星期五','星期六'];
+            const hh = String(now.getHours()).padStart(2, '0');
+            const mm = String(now.getMinutes()).padStart(2, '0');
+            const mo = String(now.getMonth() + 1).padStart(2, '0');
+            const dd = String(now.getDate()).padStart(2, '0');
+            const day = days[now.getDay()];
+            document.getElementById('clock').textContent = `${hh}:${mm} | ${mo}-${dd} ${day}`;
         }
-        document.getElementById('searchInput').addEventListener('keydown', function (e) {
-            if (e.key === 'Enter') doSearch();
-        });
+        updateClock();
+        setInterval(updateClock, 1000);
+
+        // 搜索
+        function doSearch() {
+            const q = document.getElementById('searchInput').value.trim();
+            if (q) window.open('https://www.google.com/search?q=' + encodeURIComponent(q), '_blank');
+        }
     </script>
 </body>
 </html>
